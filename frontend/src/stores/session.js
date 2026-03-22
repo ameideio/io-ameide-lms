@@ -21,14 +21,12 @@ export const sessionStore = defineStore('lms-session', () => {
 	let user = ref(sessionUser())
 	const isLoggedIn = computed(() => !!user.value)
 
-	const logout = createResource({
-		url: 'logout',
-		onSuccess() {
-			userResource.reset()
-			user.value = null
-			window.location.reload()
+	const logout = {
+		submit() {
+			window.location.href = '/auth/ameide-oidc/logout?post-logout-redirect=/'
+			return Promise.resolve()
 		},
-	})
+	}
 
 	const branding = createResource({
 		url: 'lms.lms.api.get_branding',
