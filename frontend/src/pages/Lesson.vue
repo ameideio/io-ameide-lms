@@ -904,7 +904,7 @@ watch(allowDiscussions, () => {
 })
 
 const redirectToLogin = () => {
-	window.location.href = `/login?redirect-to=${getLmsRoute(
+	window.location.href = `/auth/ameide-oidc?redirect-to=${getLmsRoute(
 		`courses/${props.courseName}`
 	)}`
 }

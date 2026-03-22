@@ -220,7 +220,7 @@
 		<div v-else-if="!user.data?.name">
 			<NotPermitted
 				text="Please login to access this page."
-				:buttonLink="`/login?redirect-to=${getLmsRoute(
+				:buttonLink="`/auth/ameide-oidc?redirect-to=${getLmsRoute(
 					`billing/${type}/${name}`
 				)}`"
 			/>

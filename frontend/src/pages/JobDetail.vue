@@ -231,7 +231,7 @@ const openApplicationModal = () => {
 }
 
 const redirectToLogin = (job) => {
-	window.location.href = `/login?redirect-to=/job-openings/${job}`
+	window.location.href = `/auth/ameide-oidc?redirect-to=/job-openings/${job}`
 }
 
 const redirectToWebsite = (url) => {

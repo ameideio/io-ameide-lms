@@ -263,7 +263,7 @@ const checkIfUserIsPermitted = (doc: any = null) => {
 		const redirectPath = getLmsRoute(
 			`programming-exercises/${props.exerciseID}/submission/${props.submissionID}`
 		)
-		window.location.href = `/login?redirect-to=${redirectPath}`
+		window.location.href = `/auth/ameide-oidc?redirect-to=${redirectPath}`
 	}
 
 	if (!doc) return
