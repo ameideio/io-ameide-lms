@@ -186,6 +186,9 @@ website_route_rules = [
 		"from_route": "/courses/<course_name>/<certificate_id>",
 		"to_route": "certificate",
 	},
+	{"from_route": "/auth/ameide-oidc", "to_route": "auth/ameide_oidc"},
+	{"from_route": "/auth/ameide-oidc/redirect", "to_route": "auth/ameide_oidc/redirect"},
+	{"from_route": "/auth/ameide-oidc/logout", "to_route": "auth/ameide_oidc/logout"},
 ]
 
 website_redirects = [

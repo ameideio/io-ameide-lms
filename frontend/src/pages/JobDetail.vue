@@ -160,7 +160,6 @@ import {
 import { inject, ref, computed } from 'vue'
 import { sessionStore } from '../stores/session'
 import JobApplicationModal from '@/components/Modals/JobApplicationModal.vue'
-import { redirectToAmeideOidc } from '@/utils/auth'
 import {
 	Check,
 	SendHorizonal,
@@ -232,7 +231,7 @@ const openApplicationModal = () => {
 }
 
 const redirectToLogin = (job) => {
-	redirectToAmeideOidc(`/job-openings/${job}`)
+	window.location.href = `/auth/ameide-oidc?redirect-to=/job-openings/${job}`
 }
 
 const redirectToWebsite = (url) => {
