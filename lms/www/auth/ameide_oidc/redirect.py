@@ -14,7 +14,9 @@ no_cache = 1
 def get_context(context=None):
 	provider = resolve_social_login_key_name()
 	if not provider:
-		frappe.respond_as_web_page(_("SSO not configured"), _("Missing an enabled Social Login Key."), http_status_code=500)
+		frappe.respond_as_web_page(
+			_("SSO not configured"), _("Missing an enabled Social Login Key."), http_status_code=500
+		)
 		return {}
 
 	code = frappe.form_dict.get("code")
@@ -25,4 +27,3 @@ def get_context(context=None):
 
 	login_via_oauth2(provider, code, state, decoder=json.loads)
 	return {}
-

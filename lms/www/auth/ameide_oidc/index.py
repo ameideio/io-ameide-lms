@@ -28,4 +28,3 @@ def get_context(context=None):
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = location
 	return {}
-
