@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          apps_json='[{"url":"https://github.com/ameideio/io-ameide-lms","branch":"develop"}]'
+          apps_json='[{"url":"https://github.com/frappe/payments","branch":"version-15"},{"url":"https://github.com/ameideio/io-ameide-lms","branch":"develop"}]'
           echo "APPS_JSON_BASE64=$(echo "${apps_json}" | base64 -w 0)" >> "${GITHUB_ENV}"
 
       - name: Checkout frappe_docker
