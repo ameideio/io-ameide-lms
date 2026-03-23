@@ -51,6 +51,31 @@ class TestAmeideOidcPages(unittest.TestCase):
 		spec.loader.exec_module(module)
 		return module, frappe
 
+	def _load_hooks(self):
+		original_frappe = sys.modules.get("frappe")
+		original_lms = sys.modules.get("lms")
+		original_lms_hooks = sys.modules.get("lms.hooks")
+
+		frappe = types.ModuleType("frappe")
+		frappe.conf = {}
+		package = types.ModuleType("lms")
+		package.__path__ = [str(Path(__file__).resolve().parent)]
+		package.__version__ = "0.0.0"
+
+		self.addCleanup(self._restore_module, "frappe", original_frappe)
+		self.addCleanup(self._restore_module, "lms", original_lms)
+		self.addCleanup(self._restore_module, "lms.hooks", original_lms_hooks)
+		sys.modules["frappe"] = frappe
+		sys.modules["lms"] = package
+
+		module_path = Path(__file__).resolve().parent / "hooks.py"
+		spec = importlib.util.spec_from_file_location("lms.hooks", module_path)
+		module = importlib.util.module_from_spec(spec)
+		assert spec and spec.loader
+		sys.modules["lms.hooks"] = module
+		spec.loader.exec_module(module)
+		return module
+
 	def test_login_page_redirects_to_oidc(self):
 		module, frappe = self._load_module("www/login.py")
 		context = types.SimpleNamespace()
@@ -86,6 +111,29 @@ class TestAmeideOidcPages(unittest.TestCase):
 		self.assertEqual(
 			frappe.local.flags.redirect_location,
 			"https://auth.example/logout?id_token_hint=token-123",
+		)
+
+	def test_hooks_expose_sales_equivalent_ameide_routes(self):
+		hooks = self._load_hooks()
+		self.assertIn(
+			{"from_route": "/auth/ameide-oidc", "to_route": "ameide_oidc"},
+			hooks.website_route_rules,
+		)
+		self.assertIn(
+			{"from_route": "/auth/ameide-oidc/redirect", "to_route": "ameide_oidc_redirect"},
+			hooks.website_route_rules,
+		)
+		self.assertIn(
+			{"from_route": "/auth/ameide-oidc/logout", "to_route": "ameide_oidc_logout"},
+			hooks.website_route_rules,
+		)
+		self.assertIn(
+			{"source": "/login", "target": "/auth/ameide-oidc"},
+			hooks.website_redirects,
+		)
+		self.assertIn(
+			{"source": "/logout", "target": "/auth/ameide-oidc/logout"},
+			hooks.website_redirects,
 		)
 
 

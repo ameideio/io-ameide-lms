@@ -179,8 +179,9 @@ override_whitelisted_methods = {
 website_route_rules = [
 	{"from_route": f"/{get_lms_path()}/<path:app_path>", "to_route": "_lms"},
 	{"from_route": f"/{get_lms_path()}", "to_route": "_lms"},
-	{"from_route": "/auth/ameide-oidc/redirect", "to_route": "auth/ameide-oidc-redirect"},
-	{"from_route": "/auth/ameide-oidc/logout", "to_route": "auth/ameide-oidc-logout"},
+	{"from_route": "/auth/ameide-oidc", "to_route": "ameide_oidc"},
+	{"from_route": "/auth/ameide-oidc/redirect", "to_route": "ameide_oidc_redirect"},
+	{"from_route": "/auth/ameide-oidc/logout", "to_route": "ameide_oidc_logout"},
 	{
 		"from_route": "/courses/<course_name>/<certificate_id>",
 		"to_route": "certificate",
@@ -188,6 +189,8 @@ website_route_rules = [
 ]
 
 website_redirects = [
+	{"source": "/login", "target": "/auth/ameide-oidc"},
+	{"source": "/logout", "target": "/auth/ameide-oidc/logout"},
 	{"source": "/update-profile", "target": "/edit-profile"},
 	{"source": "/courses", "target": f"/{get_lms_path()}/courses"},
 	{
