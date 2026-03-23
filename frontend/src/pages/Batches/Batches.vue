@@ -78,12 +78,14 @@
 					</div>
 				</div>
 
-				<FormControl
-					v-model="certification"
-					:label="__('Certification')"
-					type="checkbox"
-					@change="updateBatches()"
-				/>
+				<Tooltip :text="__('Only show batches that offer a certificate')">
+					<FormControl
+						type="checkbox"
+						v-model="certification"
+						:label="__('Certification')"
+						@change="updateBatches()"
+					/>
+				</Tooltip>
 			</div>
 		</div>
 		<div
@@ -122,6 +124,7 @@ import {
 	Dropdown,
 	FormControl,
 	Select,
+	Tooltip,
 	TabButtons,
 	usePageMeta,
 } from 'frappe-ui'
