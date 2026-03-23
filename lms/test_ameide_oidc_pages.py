@@ -85,7 +85,7 @@ class TestAmeideOidcPages(unittest.TestCase):
 		self.assertEqual(self.begin_login_target, "normalized:/lms/courses")
 
 	def test_auth_entrypoint_redirects_to_oidc(self):
-		module, frappe = self._load_module("www/auth/ameide_oidc.py")
+		module, frappe = self._load_module("www/ameide_oidc.py")
 		context = types.SimpleNamespace()
 		frappe.local.form_dict = {"redirect-to": "/lms"}
 		module.get_context(context)
@@ -93,7 +93,7 @@ class TestAmeideOidcPages(unittest.TestCase):
 		self.assertEqual(self.begin_login_target, "normalized:/lms")
 
 	def test_auth_redirect_page_completes_login(self):
-		module, frappe = self._load_module("www/auth/ameide_oidc_redirect.py")
+		module, frappe = self._load_module("www/ameide_oidc_redirect.py")
 		context = types.SimpleNamespace()
 		frappe.local.form_dict = {"code": "code-123", "state": "state-456"}
 		module.get_context(context)
@@ -135,6 +135,18 @@ class TestAmeideOidcPages(unittest.TestCase):
 			{"source": "/logout", "target": "/auth/ameide-oidc/logout"},
 			hooks.website_redirects,
 		)
+
+	def test_route_targets_have_matching_www_pages(self):
+		app_root = Path(__file__).resolve().parent
+		for route_target in (
+			"ameide_oidc",
+			"ameide_oidc_redirect",
+			"ameide_oidc_logout",
+		):
+			module_path = app_root / "www" / f"{route_target}.py"
+			template_path = app_root / "www" / f"{route_target}.html"
+			self.assertTrue(module_path.is_file(), module_path)
+			self.assertTrue(template_path.is_file(), template_path)
 
 
 if __name__ == "__main__":
