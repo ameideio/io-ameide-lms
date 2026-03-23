@@ -106,6 +106,7 @@ import LessonHelp from '@/components/LessonHelp.vue'
 import { ChevronRight } from 'lucide-vue-next'
 import { getEditorTools, enablePlyr } from '@/utils'
 import { useOnboarding, useTelemetry } from 'frappe-ui/frappe'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const { brand } = sessionStore()
 const editor = ref(null)
@@ -134,7 +135,8 @@ const props = defineProps({
 
 onMounted(() => {
 	if (!user.data?.is_moderator && !user.data?.is_instructor) {
-		window.location.href = '/login'
+		redirectToAmeideOidc()
+		return
 	}
 	capture('lesson_form_opened')
 	editor.value = renderEditor('content')

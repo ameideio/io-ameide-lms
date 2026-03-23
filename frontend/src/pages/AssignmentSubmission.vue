@@ -18,6 +18,7 @@ import { Breadcrumbs, createResource, usePageMeta } from 'frappe-ui'
 import { computed, inject, onMounted, ref } from 'vue'
 import { sessionStore } from '../stores/session'
 import Assignment from '@/components/Assignment.vue'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const user = inject('$user')
 const fromLesson = ref(false)
@@ -48,7 +49,8 @@ const title = createResource({
 
 onMounted(() => {
 	if (!user.data) {
-		window.location.href = '/login'
+		redirectToAmeideOidc()
+		return
 	}
 
 	if (new URLSearchParams(window.location.search).get('fromLesson')) {
