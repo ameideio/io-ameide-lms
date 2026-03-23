@@ -41,11 +41,15 @@ jobs:
 
       - name: Encode apps.json
         shell: bash
+        env:
+          SOURCE_REF: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          source_ref="$(git rev-parse HEAD)"
-          echo "Publishing app payload from commit ${source_ref}"
-          apps_json='[{"url":"https://github.com/frappe/payments","branch":"version-15"},{"url":"'"${APP_REPOSITORY}"'","branch":"'"${source_ref}"'"}]'
+          source_ref="${SOURCE_REF#refs/heads/}"
+          source_ref="${source_ref#refs/tags/}"
+          source_sha="$(git rev-parse HEAD)"
+          echo "Publishing app payload from ref ${source_ref} at commit ${source_sha}"
+          apps_json='[{"url":"https://github.com/frappe/payments","branch":"version-15"},{"url":"'"${APP_REPOSITORY}"'","branch":"'"${source_ref}"'","cache_key":"'"${source_sha}"'"}]'
           echo "APPS_JSON_BASE64=$(echo "${apps_json}" | base64 -w 0)" >> "${GITHUB_ENV}"
 
       - name: Checkout frappe_docker
