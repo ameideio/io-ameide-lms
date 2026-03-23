@@ -16,7 +16,7 @@ dependencies = [
     "cairocffi==1.5.1",
     "razorpay~=1.4.1",
     "fuzzywuzzy~=0.18.0",
-    "setuptools",
+    "setuptools<82",
 ]
 
 [build-system]
