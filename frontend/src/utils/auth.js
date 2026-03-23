@@ -18,7 +18,10 @@ export function normalizeAppPath(path = '') {
 }
 
 export function buildAmeideOidcLoginHref(
-	path = window.location.pathname + window.location.search + window.location.hash
+	path =
+		window.location.pathname +
+		window.location.search +
+		window.location.hash
 ) {
 	const redirectTo = normalizeAppPath(path)
 	return `/auth/ameide-oidc?redirect-to=${encodeURIComponent(redirectTo)}`

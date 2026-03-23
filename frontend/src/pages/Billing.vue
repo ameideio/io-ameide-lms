@@ -220,7 +220,9 @@
 		<div v-else-if="!user.data?.name">
 			<NotPermitted
 				text="Please login to access this page."
-				:buttonLink="buildAmeideOidcLoginHref(getLmsRoute(`billing/${type}/${name}`))"
+				:buttonLink="
+					buildAmeideOidcLoginHref(getLmsRoute(`billing/${type}/${name}`))
+				"
 			/>
 		</div>
 	</div>
