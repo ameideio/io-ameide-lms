@@ -85,7 +85,7 @@ onMounted(() => {
 				filterLinksToShow(data)
 				addOtherLinks()
 			},
-		}
+		},
 	)
 })
 
@@ -119,7 +119,7 @@ const filterLinksToShow = (data) => {
 	Object.keys(data).forEach((key) => {
 		if (!parseInt(data[key])) {
 			sidebarLinks.value = sidebarLinks.value.filter(
-				(link) => link.label.toLowerCase().split(' ').join('_') !== key
+				(link) => link.label.toLowerCase().split(' ').join('_') !== key,
 			)
 		}
 	})
@@ -214,8 +214,7 @@ let isActive = (tab) => {
 const handleClick = (tab) => {
 	if (tab.label == 'Log in') {
 		redirectToAmeideOidc()
-	}
-	else if (tab.label == 'Log out')
+	} else if (tab.label == 'Log out')
 		logout.submit().then(() => {
 			isLoggedIn = false
 		})
