@@ -18,6 +18,7 @@
 </template>
 <script setup>
 import { Button } from 'frappe-ui'
+import { buildAmeideOidcLoginHref } from '../utils/auth'
 
 const props = defineProps({
 	title: {
@@ -34,7 +35,7 @@ const props = defineProps({
 	},
 	buttonLink: {
 		type: String,
-		default: '/login',
+		default: () => buildAmeideOidcLoginHref(),
 	},
 })
 

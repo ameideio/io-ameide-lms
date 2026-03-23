@@ -15,6 +15,7 @@
 import { inject } from 'vue'
 import { Button } from 'frappe-ui'
 import Quiz from '@/components/Quiz.vue'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const user = inject('$user')
 const props = defineProps({
@@ -25,6 +26,6 @@ const props = defineProps({
 })
 
 const redirectToLogin = () => {
-	window.location.href = `/login`
+	redirectToAmeideOidc()
 }
 </script>

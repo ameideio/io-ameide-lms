@@ -160,6 +160,7 @@ import { formatAmount } from '@/utils/'
 import { useRouter } from 'vue-router'
 import CertificationLinks from '@/components/CertificationLinks.vue'
 import { useTelemetry } from 'frappe-ui/frappe'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const router = useRouter()
 const user = inject('$user')
@@ -184,7 +185,7 @@ function enrollStudent() {
 	if (!user.data) {
 		toast.warning(__('You need to login first to enroll for this course'))
 		setTimeout(() => {
-			window.location.href = `/login?redirect-to=${window.location.pathname}`
+			redirectToAmeideOidc(window.location.pathname)
 		}, 500)
 	} else {
 		call('frappe.client.insert', {
