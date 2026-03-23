@@ -42,7 +42,7 @@ jobs:
       - name: Encode apps.json
         shell: bash
         env:
-          SOURCE_REF: ${{ github.ref_name }}
+          SOURCE_REF: ${{ github.event.inputs.ref || github.ref_name }}
         run: |
           set -euo pipefail
           source_ref="${SOURCE_REF#refs/heads/}"
