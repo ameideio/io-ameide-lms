@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 import { usersStore } from './user'
 import { computed, reactive, ref } from 'vue'
+import { redirectToAmeideLogout } from '../utils/auth'
 
 export const sessionStore = defineStore('lms-session', () => {
 	let { userResource } = usersStore()
@@ -21,14 +22,13 @@ export const sessionStore = defineStore('lms-session', () => {
 	let user = ref(sessionUser())
 	const isLoggedIn = computed(() => !!user.value)
 
-	const logout = createResource({
-		url: 'logout',
-		onSuccess() {
+	const logout = {
+		submit: async () => {
 			userResource.reset()
 			user.value = null
-			window.location.reload()
+			redirectToAmeideLogout()
 		},
-	})
+	}
 
 	const branding = createResource({
 		url: 'lms.lms.api.get_branding',

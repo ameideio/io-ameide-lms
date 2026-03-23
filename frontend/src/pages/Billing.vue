@@ -220,9 +220,9 @@
 		<div v-else-if="!user.data?.name">
 			<NotPermitted
 				text="Please login to access this page."
-				:buttonLink="`/login?redirect-to=${getLmsRoute(
-					`billing/${type}/${name}`
-				)}`"
+				:buttonLink="
+					buildAmeideOidcLoginHref(getLmsRoute(`billing/${type}/${name}`))
+				"
 			/>
 		</div>
 	</div>
@@ -244,6 +244,7 @@ import NotPermitted from '@/components/NotPermitted.vue'
 import { X } from 'lucide-vue-next'
 import { useTelemetry } from 'frappe-ui/frappe'
 import { getLmsRoute } from '@/utils/basePath'
+import { buildAmeideOidcLoginHref } from '@/utils/auth'
 
 const user = inject('$user')
 const { brand } = sessionStore()

@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { usersStore } from './stores/user'
 import { sessionStore } from './stores/session'
 import { useSettings } from './stores/settings'
-import { getLmsBasePath } from './utils/basePath'
+import { getLmsBasePath, getLmsRoute } from './utils/basePath'
+import { redirectToAmeideOidc } from './utils/auth'
 
 const routes = [
 	{
@@ -271,7 +272,7 @@ router.beforeEach(async (to, from, next) => {
 
 		await settings.promise
 		if (!settings.data.allow_guest_access) {
-			window.location.href = '/login'
+			redirectToAmeideOidc(getLmsRoute(to.fullPath || ''))
 			return
 		}
 	}

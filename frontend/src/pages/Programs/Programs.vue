@@ -61,6 +61,7 @@ import { sessionStore } from '@/stores/session'
 import ProgramForm from '@/pages/Programs/ProgramForm.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import StudentPrograms from '@/pages/Programs/StudentPrograms.vue'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const { brand } = sessionStore()
 const user = inject('$user')
@@ -70,7 +71,8 @@ const readOnlyMode = window.read_only_mode
 
 onMounted(() => {
 	if (!user.data) {
-		window.location.href = '/login'
+		redirectToAmeideOidc()
+		return
 	}
 	if (user.data?.is_moderator || user.data?.is_instructor) {
 		programs.reload()

@@ -33,12 +33,13 @@
 import { inject } from 'vue'
 import { Button, usePageMeta } from 'frappe-ui'
 import { sessionStore } from '../stores/session'
+import { redirectToAmeideOidc } from '../utils/auth'
 
 const user = inject('$user')
 const { brand } = sessionStore()
 
 const redirectToLogin = () => {
-	window.location.href = '/login'
+	redirectToAmeideOidc()
 }
 
 usePageMeta(() => {

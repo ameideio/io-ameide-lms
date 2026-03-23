@@ -72,6 +72,7 @@ import { usersStore } from '@/stores/user'
 import { useSettings } from '@/stores/settings'
 import { markRaw, watch, ref, onMounted, computed } from 'vue'
 import { createDialog } from '@/utils/dialogs'
+import { redirectToAmeideOidc } from '@/utils/auth'
 import Apps from '@/components/Sidebar/Apps.vue'
 import Configuration from '@/components/Sidebar/Configuration.vue'
 import FrappeCloudIcon from '@/components/Icons/FrappeCloudIcon.vue'
@@ -232,7 +233,7 @@ const userDropdownOptions = computed(() => {
 					icon: LogIn,
 					label: 'Log in',
 					onClick: () => {
-						window.location.href = '/login'
+						redirectToAmeideOidc()
 					},
 					condition: () => {
 						return !isLoggedIn

@@ -336,6 +336,7 @@ import BatchCourses from '@/pages/Batches/components/BatchCourses.vue'
 import Assessments from '@/pages/Batches/components/Assessments.vue'
 import NewMemberModal from '@/components/Modals/NewMemberModal.vue'
 import EmailTemplateModal from '@/components/Modals/EmailTemplateModal.vue'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const router = useRouter()
 const user = inject('$user')
@@ -387,7 +388,10 @@ const props = defineProps({
 })
 
 onMounted(() => {
-	if (!user.data) window.location.href = '/login'
+	if (!user.data) {
+		redirectToAmeideOidc()
+		return
+	}
 	window.addEventListener('keydown', keyboardShortcut)
 })
 

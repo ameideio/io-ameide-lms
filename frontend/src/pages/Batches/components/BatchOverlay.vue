@@ -114,6 +114,7 @@ import {
 import { formatNumberIntoCurrency, formatTime } from '@/utils'
 import DateRange from '@/components/Common/DateRange.vue'
 import { useRouter } from 'vue-router'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const router = useRouter()
 const user = inject('$user')
@@ -137,7 +138,8 @@ const enroll = createResource({
 
 const enrollInBatch = () => {
 	if (!user.data) {
-		window.location.href = `/login?redirect-to=/batches/${props.batch.data.name}`
+		redirectToAmeideOidc(`/batches/${props.batch.data.name}`)
+		return
 	}
 	enroll.submit(
 		{},
