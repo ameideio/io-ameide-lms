@@ -7,7 +7,7 @@ from pathlib import Path
 
 class FakeFrappe(types.ModuleType):
 	def __getattr__(self, name):
-		if name in {"session", "form_dict"}:
+		if name in {"session", "form_dict", "conf"}:
 			return getattr(self.local, name)
 		raise AttributeError(name)
 
@@ -56,8 +56,8 @@ class TestAmeideOidcPages(unittest.TestCase):
 		original_lms = sys.modules.get("lms")
 		original_lms_hooks = sys.modules.get("lms.hooks")
 
-		frappe = types.ModuleType("frappe")
-		frappe.conf = {}
+		frappe = FakeFrappe("frappe")
+		frappe.local = types.SimpleNamespace(conf={})
 		package = types.ModuleType("lms")
 		package.__path__ = [str(Path(__file__).resolve().parent)]
 		package.__version__ = "0.0.0"
