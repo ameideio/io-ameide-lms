@@ -97,7 +97,6 @@ jobs:
   coverage:
     name: Coverage Wrap Up
     needs: tests
-    if: ${{ secrets.CODECOV_TOKEN != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone
