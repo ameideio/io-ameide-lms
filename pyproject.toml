@@ -16,6 +16,7 @@ dependencies = [
     "cairocffi==1.5.1",
     "razorpay~=1.4.1",
     "fuzzywuzzy~=0.18.0",
+    "setuptools",
 ]
 
 [build-system]
@@ -78,4 +79,3 @@ index_html_path = "../lms/www/_lms.html"
 Homepage = "https://frappe.io/learning"
 Repository = "https://github.com/frappe/lms.git"
 "Bug Reports" = "https://github.com/frappe/lms/issues"
-
