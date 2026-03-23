@@ -6,12 +6,17 @@ from frappe import _
 from frappe.utils.data import escape_html
 from frappe.utils.telemetry import capture
 
+from lms.ameide_oidc import build_login_redirect_location, is_enabled
 from lms.lms.utils import get_lms_path, get_lms_route
 
 no_cache = 1
 
 
 def get_context():
+	if frappe.session.user == "Guest" and is_enabled() and not _allow_guest_access():
+		frappe.local.flags.redirect_location = build_login_redirect_location(_requested_lms_path())
+		raise frappe.Redirect
+
 	context = frappe._dict()
 	context.boot = get_boot()
 	frappe.db.commit()
@@ -26,6 +31,19 @@ def get_context():
 
 	capture("active_site", "lms")
 	return context
+
+
+def _allow_guest_access():
+	return bool(frappe.db.get_single_value("LMS Settings", "allow_guest_access"))
+
+
+def _requested_lms_path():
+	app_path = frappe.form_dict.get("app_path")
+	base_path = f"/{get_lms_path()}"
+	if not app_path:
+		return base_path
+
+	return f"{base_path}/{str(app_path).lstrip('/')}"
 
 
 def get_boot():

@@ -62,6 +62,7 @@ import { sessionStore } from '@/stores/session'
 import { useSettings } from '@/stores/settings'
 import { usersStore } from '@/stores/user'
 import * as icons from 'lucide-vue-next'
+import { redirectToAmeideOidc } from '@/utils/auth'
 
 const { logout, user } = sessionStore()
 let { isLoggedIn } = sessionStore()
@@ -211,7 +212,9 @@ let isActive = (tab) => {
 }
 
 const handleClick = (tab) => {
-	if (tab.label == 'Log in') window.location.href = '/login'
+	if (tab.label == 'Log in') {
+		redirectToAmeideOidc()
+	}
 	else if (tab.label == 'Log out')
 		logout.submit().then(() => {
 			isLoggedIn = false
