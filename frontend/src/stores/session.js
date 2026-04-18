@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 import { usersStore } from './user'
 import { computed, reactive, ref } from 'vue'
-import { redirectToAmeideLogout } from '../utils/auth'
 
 export const sessionStore = defineStore('lms-session', () => {
 	let { userResource } = usersStore()
@@ -23,10 +22,10 @@ export const sessionStore = defineStore('lms-session', () => {
 	const isLoggedIn = computed(() => !!user.value)
 
 	const logout = {
-		submit: async () => {
-			userResource.reset()
-			user.value = null
-			redirectToAmeideLogout()
+		submit() {
+			window.location.href =
+				'/auth/ameide-oidc/logout?post-logout-redirect=/'
+			return Promise.resolve()
 		},
 	}
 

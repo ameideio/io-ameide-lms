@@ -162,7 +162,6 @@ import { useRouter } from 'vue-router'
 import { openSettings } from '@/utils'
 import { useSettings } from '@/stores/settings'
 import { getLmsRoute } from '@/utils/basePath'
-import { redirectToAmeideOidc } from '@/utils/auth'
 
 const user = inject<any>('$user')
 const code = ref<string | null>('')
@@ -264,8 +263,7 @@ const checkIfUserIsPermitted = (doc: any = null) => {
 		const redirectPath = getLmsRoute(
 			`programming-exercises/${props.exerciseID}/submission/${props.submissionID}`
 		)
-		redirectToAmeideOidc(redirectPath)
-		return
+		window.location.href = `/auth/ameide-oidc?redirect-to=${redirectPath}`
 	}
 
 	if (!doc) return

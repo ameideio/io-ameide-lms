@@ -380,7 +380,6 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import Notes from '@/components/Notes/Notes.vue'
 import InlineLessonMenu from '@/components/Notes/InlineLessonMenu.vue'
 import { getLmsRoute } from '@/utils/basePath'
-import { redirectToAmeideOidc } from '@/utils/auth'
 
 const user = inject('$user')
 const socket = inject('$socket')
@@ -905,7 +904,9 @@ watch(allowDiscussions, () => {
 })
 
 const redirectToLogin = () => {
-	redirectToAmeideOidc(getLmsRoute(`courses/${props.courseName}`))
+	window.location.href = `/auth/ameide-oidc?redirect-to=${getLmsRoute(
+		`courses/${props.courseName}`
+	)}`
 }
 
 usePageMeta(() => {
