@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 import frappe
 from frappe.auth import LoginManager
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.utils.password import set_encrypted_password
+from frappe.utils.password import get_decrypted_password, set_encrypted_password
 
 from lms.ameide_sso.bootstrap import ensure_social_login_key_from_env
 from lms.lms.test_helpers import BaseTestUtils
@@ -153,6 +153,10 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 		self.assertEqual(doc.base_url, self._issuer)
 		self.assertEqual(doc.redirect_url, "/auth/ameide-oidc/redirect")
 		self.assertTrue(doc.enable_social_login)
+		self.assertEqual(
+			get_decrypted_password("Social Login Key", provider_name, "client_secret"),
+			"bootstrap-secret",
+		)
 
 		with patch.dict(
 			os.environ,
@@ -172,6 +176,10 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 		self.assertEqual(
 			frappe.db.get_value("Social Login Key", provider_name, "client_id"),
 			"bootstrap-client-updated",
+		)
+		self.assertEqual(
+			get_decrypted_password("Social Login Key", provider_name, "client_secret"),
+			"bootstrap-secret-updated",
 		)
 		self.assertTrue(frappe.db.exists("Social Login Key", provider_name))
 		frappe.delete_doc("Social Login Key", provider_name, force=True)
