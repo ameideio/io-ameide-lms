@@ -49,10 +49,12 @@ jobs:
           source_ref="${SOURCE_REF#refs/heads/}"
           source_ref="${source_ref#refs/tags/}"
           source_sha="$(git rev-parse HEAD)"
+          apps_json_path="${RUNNER_TEMP}/apps.json"
           echo "Publishing app payload from ref ${source_ref} at commit ${source_sha}"
           apps_json='[{"url":"https://github.com/frappe/payments","branch":"version-15"},{"url":"'"${APP_REPOSITORY}"'","branch":"'"${source_ref}"'","cache_key":"'"${source_sha}"'"}]'
+          printf '%s' "${apps_json}" > "${apps_json_path}"
           echo "app_ref=${source_ref}" >> "${GITHUB_OUTPUT}"
-          echo "APPS_JSON_BASE64=$(echo "${apps_json}" | base64 -w 0)" >> "${GITHUB_ENV}"
+          echo "apps_json_path=${apps_json_path}" >> "${GITHUB_OUTPUT}"
 
       - name: Checkout frappe_docker
         uses: actions/checkout@v4
@@ -95,9 +97,10 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          secret-files: |
+            apps_json=${{ steps.source.outputs.apps_json_path }}
           build-args: |
             FRAPPE_BRANCH=${{ env.FRAPPE_BRANCH }}
-            APPS_JSON_BASE64=${{ env.APPS_JSON_BASE64 }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
