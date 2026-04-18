@@ -23,7 +23,8 @@ export const sessionStore = defineStore('lms-session', () => {
 
 	const logout = {
 		submit() {
-			window.location.href = '/auth/ameide-oidc/logout?post-logout-redirect=/'
+			window.location.href =
+				'/auth/ameide-oidc/logout?post-logout-redirect=/'
 			return Promise.resolve()
 		},
 	}
