@@ -4,6 +4,9 @@ on:
     - cron: '30 3 * * 3'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Release
@@ -12,7 +15,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: octokit/request-action@v2.x
+      - uses: octokit/request-action@02f5e7c637a73a3b12ed81015fa7fb5f11cc5d7d  # v2.x
         with:
           route: POST /repos/{owner}/{repo}/pulls
           owner: frappe
