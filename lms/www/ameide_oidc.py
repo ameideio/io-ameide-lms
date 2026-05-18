@@ -1,11 +1,5 @@
-import frappe
-
-from lms.ameide_oidc import begin_login, normalize_redirect_to
+from lms.www.auth.ameide_oidc import index as ameide_oidc_index
 
 
-def get_context(context):
-	context.no_cache = 1
-	redirect_to = normalize_redirect_to(
-		frappe.form_dict.get("redirect-to") or frappe.form_dict.get("redirect_to")
-	)
-	begin_login(redirect_to)
+def get_context(context=None):
+	return ameide_oidc_index.get_context(context)
