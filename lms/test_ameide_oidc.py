@@ -83,7 +83,19 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 		super().setUp()
 		frappe.local.form_dict = frappe._dict()
 		frappe.local.response = {}
-		frappe.local.request = frappe._dict(path="/", cookies={})
+		# LoginManager() walks the full request lifecycle (set_user_info ->
+		# cookie_manager.init_cookies, make_session -> request.headers.get),
+		# so a bare _dict is not enough: build a real werkzeug request and
+		# the CookieManager exactly as frappe.app.application() does before
+		# constructing LoginManager.
+		from frappe.app import CookieManager
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		frappe.local.request = Request(
+			EnvironBuilder(path="/", headers={"User-Agent": "lms-tests"}).get_environ()
+		)
+		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
 		frappe.session.user = "Guest"
 
