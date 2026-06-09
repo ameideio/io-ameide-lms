@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 import frappe
 from frappe.auth import LoginManager
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.utils.password import get_decrypted_password, set_encrypted_password
+from frappe.utils.password import get_decrypted_password
 
 from lms.ameide_sso.bootstrap import ensure_social_login_key_from_env
 from lms.lms.test_helpers import BaseTestUtils
@@ -54,6 +54,26 @@ class _OidcHandler(BaseHTTPRequestHandler):
 		)
 
 
+class _TestCookieManager:
+	def __init__(self):
+		self.cookies = {}
+		self.to_delete = []
+
+	def init_cookies(self):
+		if not getattr(frappe.local, "session", {}).get("sid"):
+			return
+		if frappe.session.sid:
+			self.set_cookie("sid", frappe.session.sid, httponly=True)
+
+	def set_cookie(self, key, value, **kwargs):
+		self.cookies[key] = {"value": value, **kwargs}
+
+	def delete_cookie(self, to_delete):
+		if not isinstance(to_delete, list | tuple):
+			to_delete = [to_delete]
+		self.to_delete.extend(to_delete)
+
+
 class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -73,7 +93,7 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 	def tearDownClass(cls):
 		try:
 			if frappe.db.exists("Social Login Key", cls._provider_name):
-				frappe.delete_doc("Social Login Key", cls._provider_name, force=True)
+				frappe.delete_doc("Social Login Key", cls._provider_name, force=True, ignore_permissions=True)
 		finally:
 			cls._server.shutdown()
 			cls._server.server_close()
@@ -83,19 +103,15 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 		super().setUp()
 		frappe.local.form_dict = frappe._dict()
 		frappe.local.response = {}
-		# LoginManager() walks the full request lifecycle (set_user_info ->
-		# cookie_manager.init_cookies, make_session -> request.headers.get),
-		# so a bare _dict is not enough: build a real werkzeug request and
-		# the CookieManager exactly as frappe.app.application() does before
-		# constructing LoginManager.
-		from frappe.app import CookieManager
+		# LoginManager() needs the request shape plus cookie sink methods, but
+		# Frappe's concrete CookieManager is an internal auth.py implementation.
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
 		frappe.local.request = Request(
 			EnvironBuilder(path="/", headers={"User-Agent": "lms-tests"}).get_environ()
 		)
-		frappe.local.cookie_manager = CookieManager()
+		frappe.local.cookie_manager = _TestCookieManager()
 		frappe.local.login_manager = LoginManager()
 		frappe.session.user = "Guest"
 
@@ -166,6 +182,7 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 		self.assertEqual(doc.base_url, self._issuer)
 		self.assertEqual(doc.redirect_url, "/auth/ameide-oidc/redirect")
 		self.assertTrue(doc.enable_social_login)
+		self.assertEqual(doc.sign_ups, "Allow")
 		self.assertEqual(
 			get_decrypted_password("Social Login Key", provider_name, "client_secret"),
 			"bootstrap-secret",
@@ -195,7 +212,7 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 			"bootstrap-secret-updated",
 		)
 		self.assertTrue(frappe.db.exists("Social Login Key", provider_name))
-		frappe.delete_doc("Social Login Key", provider_name, force=True)
+		frappe.delete_doc("Social Login Key", provider_name, force=True, ignore_permissions=True)
 		frappe.db.commit()  # nosemgrep: test cleanup must persist before later assertions run
 
 	@classmethod
@@ -216,10 +233,12 @@ class TestAmeideOidc(BaseTestUtils, FrappeAPITestCase):
 				"api_endpoint": "/protocol/openid-connect/userinfo",
 				"redirect_url": "/auth/ameide-oidc/redirect",
 				"user_id_property": "sub",
+				"sign_ups": "Allow",
 				"enable_social_login": 0,
 			}
-		).insert(ignore_permissions=True)
+		)
+		doc.client_secret = "client-secret"
+		doc.insert(ignore_permissions=True, set_name=cls._provider_name)
 
-		set_encrypted_password("Social Login Key", doc.name, "client_secret", "client-secret")
 		frappe.db.set_value("Social Login Key", doc.name, "enable_social_login", 1)
 		frappe.db.commit()  # nosemgrep: test fixture must persist encrypted secret before callback flow reads it
