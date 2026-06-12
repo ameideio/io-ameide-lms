@@ -1,6 +1,7 @@
 import json
 
 import frappe
+import frappe.permissions as frappe_permissions
 
 PERMISSION_CONTRACT_VERSION = "lms-user-upsert-v1"
 ONBOARDING_SERVICE_ROLE = "Ameide LMS Onboarding"
@@ -70,7 +71,7 @@ def _user_role_permissions(user: str) -> list:
 	user_roles = set(frappe.get_roles(user))
 	return [
 		perm
-		for perm in frappe.permissions.get_valid_perms(USER_DOCTYPE)
+		for perm in frappe_permissions.get_valid_perms(USER_DOCTYPE)
 		if getattr(perm, "role", None) in user_roles
 	]
 
@@ -88,9 +89,9 @@ def service_token_contract() -> dict[str, object]:
 	return {
 		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
 		"user": user,
-		"user_create": bool(frappe.permissions.has_permission(USER_DOCTYPE, "create", user=user)),
-		"user_read": bool(frappe.permissions.has_permission(USER_DOCTYPE, "read", user=user)),
-		"user_write": bool(frappe.permissions.has_permission(USER_DOCTYPE, "write", user=user)),
+		"user_create": bool(frappe_permissions.has_permission(USER_DOCTYPE, "create", user=user)),
+		"user_read": bool(frappe_permissions.has_permission(USER_DOCTYPE, "read", user=user)),
+		"user_write": bool(frappe_permissions.has_permission(USER_DOCTYPE, "write", user=user)),
 		"user_permlevel_1_read": _has_role_permission(user, "read", 1),
 		"user_permlevel_1_write": _has_role_permission(user, "write", 1),
 	}

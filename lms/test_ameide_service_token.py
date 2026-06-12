@@ -4,8 +4,17 @@ import unittest
 from contextlib import contextmanager
 from unittest.mock import patch
 
-frappe_module = sys.modules.setdefault("frappe", types.ModuleType("frappe"))
-frappe_module.whitelist = lambda **_kwargs: lambda fn: fn
+try:
+	import frappe as frappe_module
+except ModuleNotFoundError:
+	frappe_module = types.ModuleType("frappe")
+	frappe_module.__path__ = []
+	frappe_module.whitelist = lambda **_kwargs: lambda fn: fn
+	sys.modules["frappe"] = frappe_module
+	frappe_permissions_module = types.ModuleType("frappe.permissions")
+	frappe_permissions_module.get_valid_perms = lambda _doctype: []
+	frappe_permissions_module.has_permission = lambda *_args, **_kwargs: False
+	sys.modules["frappe.permissions"] = frappe_permissions_module
 import lms.ameide_service_token as service_token_module
 from lms.ameide_service_token import (
 	ONBOARDING_SERVICE_ROLE,
@@ -87,10 +96,6 @@ class _Frappe:
 		self.db = _DB(self.state)
 		self.users = self.state["users"]
 		self.session = types.SimpleNamespace(user="")
-		self.permissions = types.SimpleNamespace(
-			get_valid_perms=self._get_valid_perms,
-			has_permission=self._has_permission,
-		)
 		self.cleared_doctypes = []
 
 	def get_doc(self, *args):
@@ -154,6 +159,14 @@ class TestAmeideServiceToken(unittest.TestCase):
 				},
 			) as modules,
 			patch.object(service_token_module, "frappe", frappe),
+			patch.object(
+				service_token_module,
+				"frappe_permissions",
+				types.SimpleNamespace(
+					get_valid_perms=frappe._get_valid_perms,
+					has_permission=frappe._has_permission,
+				),
+			),
 		):
 			yield modules
 

@@ -123,7 +123,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: cypress-screenshots-${{ matrix.containers }}
-          path: cypress/screenshots
+          path: /home/runner/frappe-bench/apps/lms/cypress/screenshots
 
       - name: Stop server and wait for coverage file
         run: |
