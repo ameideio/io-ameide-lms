@@ -1,9 +1,8 @@
 import json
 
 import frappe
-import frappe.permissions as frappe_permissions
 
-PERMISSION_CONTRACT_VERSION = "lms-user-upsert-v1"
+PERMISSION_CONTRACT_VERSION = "lms-learner-method-v1"
 ONBOARDING_SERVICE_ROLE = "Ameide LMS Onboarding"
 USER_DOCTYPE = "User"
 
@@ -30,47 +29,141 @@ def _ensure_role(role_name: str) -> None:
 	role.save(ignore_permissions=True)
 
 
-def _ensure_custom_docperm(role_name: str, permlevel: int, read: int, write: int, create: int) -> None:
-	filters = {"parent": USER_DOCTYPE, "role": role_name, "permlevel": permlevel}
-	fields = {
-		"read": read,
-		"select": read,
-		"write": write,
-		"create": create,
-		"permlevel": permlevel,
-	}
-	name = frappe.db.exists("Custom DocPerm", filters)
-	if name:
-		doc = frappe.get_doc("Custom DocPerm", name)
-	else:
-		doc = frappe.new_doc("Custom DocPerm")
-		doc.update(
-			{
-				"parent": USER_DOCTYPE,
-				"parentfield": "permissions",
-				"parenttype": "DocType",
-				"role": role_name,
-			}
-		)
-	doc.update(fields)
-	doc.save(ignore_permissions=True)
-
-
-def _ensure_onboarding_permission_contract() -> None:
+def _ensure_onboarding_role_contract() -> None:
 	_ensure_role(ONBOARDING_SERVICE_ROLE)
-	_ensure_custom_docperm(ONBOARDING_SERVICE_ROLE, 0, read=1, write=1, create=1)
-	frappe.clear_cache(doctype=USER_DOCTYPE)
+
+
+def _split_name(full_name: str) -> tuple[str, str]:
+	parts = str(full_name or "").strip().split(" ", 1)
+	first_name = parts[0] if parts and parts[0] else "Learner"
+	last_name = parts[1] if len(parts) > 1 else ""
+	return first_name, last_name
+
+
+def _ensure_user_role(user, role: str) -> None:
+	existing_roles = {row.role for row in user.roles}
+	if role in existing_roles:
+		return
+	user.append("roles", {"role": role})
+
+
+def _remove_user_role(user, role: str) -> bool:
+	kept = [row for row in user.roles if row.role != role]
+	if len(kept) == len(user.roles):
+		return False
+	user.roles = kept
+	return True
+
+
+def _require_onboarding_service_role() -> None:
+	user = frappe.session.user
+	roles = set(frappe.get_roles(user))
+	if ONBOARDING_SERVICE_ROLE not in roles:
+		raise PermissionError(f"{ONBOARDING_SERVICE_ROLE} role required")
 
 
 @frappe.whitelist(methods=["GET"])
 def service_token_contract() -> dict[str, object]:
 	user = frappe.session.user
+	roles = set(frappe.get_roles(user))
 	return {
 		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
 		"user": user,
-		"user_create": bool(frappe_permissions.has_permission(USER_DOCTYPE, "create", user=user)),
-		"user_read": bool(frappe_permissions.has_permission(USER_DOCTYPE, "read", user=user)),
-		"user_write": bool(frappe_permissions.has_permission(USER_DOCTYPE, "write", user=user)),
+		"onboarding_role": ONBOARDING_SERVICE_ROLE in roles,
+		"ensure_method": "lms.ameide_service_token.ensure_learner",
+		"disable_method": "lms.ameide_service_token.disable_learner",
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def ensure_learner(
+	email: str,
+	full_name: str,
+	organization_id: str = "",
+	user_id: str = "",
+	idempotency_key: str = "",
+) -> dict[str, object]:
+	_require_onboarding_service_role()
+	first_name, last_name = _split_name(full_name)
+	email = str(email or "").strip()
+	if not email:
+		raise ValueError("email is required")
+
+	created = False
+	if not frappe.db.exists("User", email):
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": first_name,
+				"last_name": last_name,
+				"enabled": 1,
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+				"roles": [{"role": "LMS Student"}],
+			}
+		)
+		user.insert(ignore_permissions=True)
+		created = True
+	else:
+		user = frappe.get_doc("User", email)
+		user.enabled = 1
+		if not getattr(user, "first_name", ""):
+			user.first_name = first_name
+		if last_name and not getattr(user, "last_name", ""):
+			user.last_name = last_name
+		_ensure_user_role(user, "LMS Student")
+		user.save(ignore_permissions=True)
+
+	return {
+		"email": email,
+		"user": email,
+		"created": created,
+		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
+		"organization_id": organization_id,
+		"user_id": user_id,
+		"idempotency_key": idempotency_key,
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def disable_learner(
+	email: str,
+	full_name: str = "",
+	organization_id: str = "",
+	user_id: str = "",
+	idempotency_key: str = "",
+) -> dict[str, object]:
+	_require_onboarding_service_role()
+	email = str(email or "").strip()
+	if not email:
+		raise ValueError("email is required")
+	if not frappe.db.exists("User", email):
+		return {
+			"email": email,
+			"user": email,
+			"removed": False,
+			"permission_contract_version": PERMISSION_CONTRACT_VERSION,
+			"organization_id": organization_id,
+			"user_id": user_id,
+			"idempotency_key": idempotency_key,
+		}
+
+	user = frappe.get_doc("User", email)
+	removed = _remove_user_role(user, "LMS Student")
+	if removed:
+		if not user.roles:
+			user.enabled = 0
+		user.save(ignore_permissions=True)
+
+	return {
+		"email": email,
+		"user": email,
+		"removed": removed,
+		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
+		"organization_id": organization_id,
+		"user_id": user_id,
+		"idempotency_key": idempotency_key,
 	}
 
 
@@ -80,18 +173,18 @@ def ensure_token(email: str, full_name: str, roles: str | list[str] | tuple[str,
 	from frappe.core.doctype.user.user import generate_keys
 
 	roles = _normalize_roles(roles)
-	_ensure_onboarding_permission_contract()
+	_ensure_onboarding_role_contract()
 	if ONBOARDING_SERVICE_ROLE not in roles:
 		roles.append(ONBOARDING_SERVICE_ROLE)
-	parts = full_name.split(" ", 1)
+	first_name, last_name = _split_name(full_name)
 
 	if not frappe.db.exists("User", email):
 		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": email,
-				"first_name": parts[0],
-				"last_name": parts[1] if len(parts) > 1 else "",
+				"first_name": first_name,
+				"last_name": last_name,
 				"enabled": 1,
 				"user_type": "System User",
 				"send_welcome_email": 0,
