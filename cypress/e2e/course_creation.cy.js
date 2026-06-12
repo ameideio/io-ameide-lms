@@ -120,7 +120,12 @@ describe("Course Creation", () => {
 					.invoke("css", "background-image")
 					.should("include", "/files/profile");
 			});
-		cy.get("div").contains("Test Course").closest("a").click();
+		cy.get("div")
+			.contains("Test Course")
+			.closest("a")
+			.scrollIntoView({ block: "center" })
+			.should("be.visible")
+			.click();
 		cy.url().should("include", "/lms/courses/test-course");
 		cy.get("div").contains("Test Course");
 		cy.get("div").contains("Test Course Short Introduction to test the UI");
@@ -136,7 +141,11 @@ describe("Course Creation", () => {
 		// View Chapter
 		cy.get("div").contains("Test Chapter");
 		cy.get("[id^=headlessui-disclosure-panel-").within(() => {
-			cy.get("div").contains("Test Lesson").click();
+			cy.get("div")
+				.contains("Test Lesson")
+				.scrollIntoView({ block: "center" })
+				.should("be.visible")
+				.click();
 		});
 		cy.wait(500);
 
@@ -162,7 +171,11 @@ describe("Course Creation", () => {
 
 		// View Discussion
 		cy.wait(500);
-		cy.get("div").contains("Test Discussion").click();
+		cy.get("div")
+			.contains("Test Discussion")
+			.scrollIntoView({ block: "center" })
+			.should("be.visible")
+			.click();
 		cy.get("div[contenteditable=true").invoke(
 			"text",
 			"This is a test comment. This will check if the UI is working properly."
@@ -173,10 +186,21 @@ describe("Course Creation", () => {
 		);
 
 		// Delete Course
-		cy.get("div").contains("Test Course").click();
-		cy.get("button").contains("Settings").click();
+		cy.get("div")
+			.contains("Test Course")
+			.scrollIntoView({ block: "center" })
+			.should("be.visible")
+			.click();
+		cy.get("button")
+			.contains("Settings")
+			.scrollIntoView({ block: "center" })
+			.should("be.visible")
+			.click();
 		cy.get("header").within(() => {
-			cy.get("svg.lucide.lucide-trash2-icon").click();
+			cy.get("svg.lucide.lucide-trash2-icon")
+				.scrollIntoView({ block: "center" })
+				.should("be.visible")
+				.click();
 		});
 		cy.get("span").contains("Delete").click();
 		cy.wait(500);
