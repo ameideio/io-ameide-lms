@@ -8,10 +8,6 @@ ONBOARDING_SERVICE_ROLE = "Ameide LMS Onboarding"
 USER_DOCTYPE = "User"
 
 
-def _truthy(value) -> bool:
-	return bool(int(value or 0))
-
-
 def _normalize_roles(roles: str | list[str] | tuple[str, ...]) -> list[str]:
 	if isinstance(roles, str):
 		roles = json.loads(roles)
@@ -63,24 +59,7 @@ def _ensure_custom_docperm(role_name: str, permlevel: int, read: int, write: int
 def _ensure_onboarding_permission_contract() -> None:
 	_ensure_role(ONBOARDING_SERVICE_ROLE)
 	_ensure_custom_docperm(ONBOARDING_SERVICE_ROLE, 0, read=1, write=1, create=1)
-	_ensure_custom_docperm(ONBOARDING_SERVICE_ROLE, 1, read=1, write=1, create=1)
 	frappe.clear_cache(doctype=USER_DOCTYPE)
-
-
-def _user_role_permissions(user: str) -> list:
-	user_roles = set(frappe.get_roles(user))
-	return [
-		perm
-		for perm in frappe_permissions.get_valid_perms(USER_DOCTYPE)
-		if getattr(perm, "role", None) in user_roles
-	]
-
-
-def _has_role_permission(user: str, action: str, permlevel: int) -> bool:
-	return any(
-		int(getattr(perm, "permlevel", 0) or 0) == permlevel and _truthy(getattr(perm, action, 0))
-		for perm in _user_role_permissions(user)
-	)
 
 
 @frappe.whitelist(methods=["GET"])
@@ -92,8 +71,6 @@ def service_token_contract() -> dict[str, object]:
 		"user_create": bool(frappe_permissions.has_permission(USER_DOCTYPE, "create", user=user)),
 		"user_read": bool(frappe_permissions.has_permission(USER_DOCTYPE, "read", user=user)),
 		"user_write": bool(frappe_permissions.has_permission(USER_DOCTYPE, "write", user=user)),
-		"user_permlevel_1_read": _has_role_permission(user, "read", 1),
-		"user_permlevel_1_write": _has_role_permission(user, "write", 1),
 	}
 
 

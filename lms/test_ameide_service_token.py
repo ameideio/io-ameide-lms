@@ -205,13 +205,10 @@ class TestAmeideServiceToken(unittest.TestCase):
 			for perm in frappe.state["docperms"].values()
 			if perm.parent == "User" and perm.role == ONBOARDING_SERVICE_ROLE
 		}
-		self.assertEqual(set(perms), {0, 1})
+		self.assertEqual(set(perms), {0})
 		self.assertTrue(perms[0].read)
 		self.assertTrue(perms[0].write)
 		self.assertTrue(perms[0].create)
-		self.assertTrue(perms[1].read)
-		self.assertTrue(perms[1].write)
-		self.assertTrue(perms[1].create)
 
 	def test_service_token_contract_reports_required_permissions(self):
 		user = _User("svc@example.com", [ONBOARDING_SERVICE_ROLE])
@@ -226,5 +223,5 @@ class TestAmeideServiceToken(unittest.TestCase):
 		self.assertTrue(result["user_create"])
 		self.assertTrue(result["user_read"])
 		self.assertTrue(result["user_write"])
-		self.assertTrue(result["user_permlevel_1_read"])
-		self.assertTrue(result["user_permlevel_1_write"])
+		self.assertNotIn("user_permlevel_1_read", result)
+		self.assertNotIn("user_permlevel_1_write", result)
