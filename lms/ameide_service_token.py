@@ -2,7 +2,6 @@ import json
 
 import frappe
 
-PERMISSION_CONTRACT_VERSION = "lms-learner-method-v1"
 ONBOARDING_SERVICE_ROLE = "Ameide LMS Onboarding"
 USER_DOCTYPE = "User"
 
@@ -62,19 +61,6 @@ def _require_onboarding_service_role() -> None:
 		raise PermissionError(f"{ONBOARDING_SERVICE_ROLE} role required")
 
 
-@frappe.whitelist(methods=["GET"])
-def service_token_contract() -> dict[str, object]:
-	user = frappe.session.user
-	roles = set(frappe.get_roles(user))
-	return {
-		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
-		"user": user,
-		"onboarding_role": ONBOARDING_SERVICE_ROLE in roles,
-		"ensure_method": "lms.ameide_service_token.ensure_learner",
-		"disable_method": "lms.ameide_service_token.disable_learner",
-	}
-
-
 @frappe.whitelist(methods=["POST"])
 def ensure_learner(
 	email: str,
@@ -119,7 +105,6 @@ def ensure_learner(
 		"email": email,
 		"user": email,
 		"created": created,
-		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
 		"organization_id": organization_id,
 		"user_id": user_id,
 		"idempotency_key": idempotency_key,
@@ -143,7 +128,6 @@ def disable_learner(
 			"email": email,
 			"user": email,
 			"removed": False,
-			"permission_contract_version": PERMISSION_CONTRACT_VERSION,
 			"organization_id": organization_id,
 			"user_id": user_id,
 			"idempotency_key": idempotency_key,
@@ -160,7 +144,6 @@ def disable_learner(
 		"email": email,
 		"user": email,
 		"removed": removed,
-		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
 		"organization_id": organization_id,
 		"user_id": user_id,
 		"idempotency_key": idempotency_key,
@@ -208,6 +191,5 @@ def ensure_token(email: str, full_name: str, roles: str | list[str] | tuple[str,
 		"email": email,
 		"api_key": user.api_key,
 		"api_secret": keys.get("api_secret") if isinstance(keys, dict) else "",
-		"permission_contract_version": PERMISSION_CONTRACT_VERSION,
 	}
 	return result

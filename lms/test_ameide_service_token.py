@@ -14,11 +14,9 @@ except ModuleNotFoundError:
 import lms.ameide_service_token as service_token_module
 from lms.ameide_service_token import (
 	ONBOARDING_SERVICE_ROLE,
-	PERMISSION_CONTRACT_VERSION,
 	disable_learner,
 	ensure_learner,
 	ensure_token,
-	service_token_contract,
 )
 
 
@@ -151,7 +149,6 @@ class TestAmeideServiceToken(unittest.TestCase):
 		self.assertIn(ONBOARDING_SERVICE_ROLE, [row.role for row in frappe.users["svc@example.com"].roles])
 		self.assertEqual(result["api_key"], "key-svc@example.com")
 		self.assertEqual(result["api_secret"], "secret-svc@example.com")
-		self.assertEqual(result["permission_contract_version"], PERMISSION_CONTRACT_VERSION)
 		self.assertEqual(frappe.cleared_doctypes, [])
 
 	def test_updates_existing_user_roles(self):
@@ -174,23 +171,6 @@ class TestAmeideServiceToken(unittest.TestCase):
 		role = next(doc for doc in frappe.state["roles"].values() if doc.role_name == ONBOARDING_SERVICE_ROLE)
 		self.assertEqual(role.desk_access, 0)
 
-	def test_service_token_contract_reports_required_methods_and_role(self):
-		user = _User("svc@example.com", [ONBOARDING_SERVICE_ROLE])
-		with self._with_frappe({"svc@example.com": user}) as modules:
-			frappe = modules["frappe"]
-			frappe.session.user = "svc@example.com"
-			ensure_token("svc@example.com", "Service User", [ONBOARDING_SERVICE_ROLE])
-			result = service_token_contract()
-
-		self.assertEqual(result["permission_contract_version"], PERMISSION_CONTRACT_VERSION)
-		self.assertEqual(result["user"], "svc@example.com")
-		self.assertTrue(result["onboarding_role"])
-		self.assertEqual(result["ensure_method"], "lms.ameide_service_token.ensure_learner")
-		self.assertEqual(result["disable_method"], "lms.ameide_service_token.disable_learner")
-		self.assertNotIn("user_create", result)
-		self.assertNotIn("user_read", result)
-		self.assertNotIn("user_write", result)
-
 	def test_ensure_learner_creates_website_user_with_student_role(self):
 		service_user = _User("svc@example.com", [ONBOARDING_SERVICE_ROLE])
 		with self._with_frappe({"svc@example.com": service_user}) as modules:
@@ -207,7 +187,6 @@ class TestAmeideServiceToken(unittest.TestCase):
 		learner = frappe.users["learner@example.com"]
 		self.assertTrue(result["created"])
 		self.assertEqual(result["user"], "learner@example.com")
-		self.assertEqual(result["permission_contract_version"], PERMISSION_CONTRACT_VERSION)
 		self.assertTrue(learner.inserted)
 		self.assertEqual(learner.user_type, "Website User")
 		self.assertEqual(learner.first_name, "Learner")
